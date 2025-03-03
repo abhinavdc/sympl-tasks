@@ -1,5 +1,5 @@
-import { Box, Center, HStack, Table } from "@chakra-ui/react";
-import { ReactNode, useState } from "react";
+import { Box, Flex, HStack, Table } from "@chakra-ui/react";
+import { ReactNode, useEffect, useState } from "react";
 import {
   PaginationItems,
   PaginationNextTrigger,
@@ -7,6 +7,7 @@ import {
   PaginationPrevTrigger,
   PaginationRoot,
 } from "./ui/pagination";
+import PageSizeSelector from "./PageSizeSelector";
 
 type StringKeyOf<T> = Extract<keyof T, string>;
 
@@ -25,11 +26,20 @@ export default function DataTable<T>({
   items,
   columns,
 }: {
-  items: T[];
+  items: (T & { id?: string | number})[];
   columns: ColumnDef<T>[];
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  useEffect(() => {
+    console.log('pageSize', pageSize)
+  }, [pageSize])
+  
+  function changePageSize(val: number) {
+    setPageSize(val);
+    setCurrentPage(1);
+  }
 
   return (
     <>
@@ -48,10 +58,10 @@ export default function DataTable<T>({
             style={{ top: "0", margin: "0", zIndex: "1", position: "sticky" }}
           >
             <Table.Row>
-              {columns.map((column, index) => {
+              {columns.map((column) => {
                 return (
                   <Table.ColumnHeader
-                    key={`${column.accessor}-${String(index)}`}
+                    key={column.accessor}
                   >
                     {column.title}
                   </Table.ColumnHeader>
@@ -61,12 +71,12 @@ export default function DataTable<T>({
           </Table.Header>
 
           <Table.Body>
-            {paginate(items, currentPage, pageSize).map((item, rowIndex) => (
+            {paginate(items, currentPage, pageSize).map((item) => (
               // eslint-disable-next-line react-x/no-array-index-key
-              <Table.Row key={rowIndex}>
+              <Table.Row key={item.id}>
                 {columns.map((column) => {
                   return (
-                    <Table.Cell key={`${String(rowIndex)}-${column.accessor}`}>
+                    <Table.Cell key={`${String(item.id)}-${column.accessor}`}>
                       {column.render
                         ? column.render(item)
                         : String(item[column.accessor] ?? "")}
@@ -79,8 +89,10 @@ export default function DataTable<T>({
         </Table.Root>
       </Box>
 
-      <Center mt="3">
+      <Flex mt="3" justifyContent="center">
+        <PageSizeSelector value={pageSize} onChange={changePageSize}/>
         <PaginationRoot
+            page={currentPage}
           count={items.length}
           pageSize={pageSize}
           defaultPage={1}
@@ -97,7 +109,7 @@ export default function DataTable<T>({
             <PaginationNextTrigger />
           </HStack>
         </PaginationRoot>
-      </Center>
+      </Flex>
     </>
   );
 }
