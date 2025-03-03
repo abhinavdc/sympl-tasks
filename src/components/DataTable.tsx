@@ -48,7 +48,7 @@ export default function DataTable<T>({
         borderColor="gray.200"
         rounded="md"
         style={{
-          maxHeight: "calc(100% - 60px)",
+          maxHeight: "calc(100% - 80px)",
           overflowY: "auto",
         }}
         w="100%"
