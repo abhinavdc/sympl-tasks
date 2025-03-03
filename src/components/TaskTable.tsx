@@ -3,6 +3,9 @@ import DataTable, { ColumnDef } from "./DataTable";
 import { Task } from "@/data/types";
 import StatusBadge from "./StatusBadge";
 import PriorityBadge from "./PriorityBadge";
+import Toolbar from "./Toolbar";
+import CreateTaskDrawer from "./CreateTaskDrawer";
+import { Flex } from "@chakra-ui/react";
 
 const columns: ColumnDef<(typeof tasks)[number]>[] = [
   {
@@ -32,6 +35,10 @@ const columns: ColumnDef<(typeof tasks)[number]>[] = [
 export default function TaskTable() {
   return (
     <>
+      <Flex justifyContent="space-between" w="100%" py="2">
+        <Toolbar />
+        <CreateTaskDrawer />
+      </Flex>
       <DataTable columns={columns} items={tasks} />
     </>
   );
