@@ -7,18 +7,18 @@ const gradientTo = useColorModeValue("blue.200", "blue.700");
   return (
     <Box
       position="relative"
-      h="160px"
+      h="120px"
       bgGradient="to-r"
       gradientFrom={gradientFrom}
       gradientTo={gradientTo}
 
     >
       <Center h="100%">
-        <Heading as="h1" fontSize={{ md: "6xl", sm: "4xl", base: "3xl" }}>
+        <Heading as="h1" fontSize={{ md: "4xl", sm: "3xl", base: "2xl" }}>
           Sympl Tasks
         </Heading>
       </Center>
-      <ColorModeButton position="absolute" bottom="10px" right="10px" />
+      <ColorModeButton position="absolute" top="10px" right="10px" />
     </Box>
   );
 }

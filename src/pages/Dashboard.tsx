@@ -9,7 +9,7 @@ export default function Dashboard() {
   return (
     <Flex w="100vw" h="100vh" flexDir="column" bg={bg}>
       <HeroImage />
-      <Container maxHeight="calc(100vh - 160px)" maxW="4xl" p="30px" boxSizing="border-box">
+      <Container maxHeight="calc(100vh - 120px)" maxW="4xl" px="10px" boxSizing="border-box">
         <TaskTable />
       </Container>
     </Flex>
