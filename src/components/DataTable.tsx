@@ -12,7 +12,7 @@ import PageSizeSelector from "./PageSizeSelector";
 type StringKeyOf<T> = Extract<keyof T, string>;
 
 export interface ColumnDef<T> {
-  accessor: StringKeyOf<T>;
+  accessor?: StringKeyOf<T>;
   title: string | ReactNode;
   render?: (item: T) => React.ReactNode;
   width?: string;
@@ -75,10 +75,10 @@ export default function DataTable<T>({
               <Table.Row key={item.id}>
                 {columns.map((column) => {
                   return (
-                    <Table.Cell key={`${String(item.id)}-${column.accessor}`}>
+                    <Table.Cell key={`${String(item.id)}-${column.accessor ?? ""}`}>
                       {column.render
                         ? column.render(item)
-                        : String(item[column.accessor] ?? "")}
+                        : String(column.accessor ? item[column.accessor] : "")}
                     </Table.Cell>
                   );
                 })}
