@@ -1,5 +1,5 @@
 import { Box, Flex, HStack, Table } from "@chakra-ui/react";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useState } from "react";
 import {
   PaginationItems,
   PaginationNextTrigger,
@@ -31,10 +31,6 @@ export default function DataTable<T>({
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-
-  useEffect(() => {
-    console.log('pageSize', pageSize)
-  }, [pageSize])
   
   function changePageSize(val: number) {
     setPageSize(val);
@@ -72,7 +68,6 @@ export default function DataTable<T>({
 
           <Table.Body>
             {paginate(items, currentPage, pageSize).map((item) => (
-              // eslint-disable-next-line react-x/no-array-index-key
               <Table.Row key={item.id}>
                 {columns.map((column) => {
                   return (
