@@ -40,9 +40,6 @@ const FIELD_TYPES = [
   { value: "checkbox", label: "Checkbox" },
 ];
 
-// Non-removable default fields
-const DEFAULT_FIELDS = ["title", "priority", "status"];
-
 export default function AddCustomFields({
   open,
   onClose,
@@ -228,7 +225,6 @@ export default function AddCustomFields({
                   onClick={() => {
                     handleRemoveField(index);
                   }}
-                  disabled={DEFAULT_FIELDS.includes(field.label)}
                   aria-label="Remove field"
                   mt={6}
                 >
