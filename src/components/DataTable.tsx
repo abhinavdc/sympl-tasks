@@ -15,6 +15,7 @@ export interface ColumnDef<T> {
   accessor: StringKeyOf<T>;
   title: string | ReactNode;
   render?: (item: T) => React.ReactNode;
+  width?: string;
 }
 
 function paginate<T>(array: T[], pageNumber: number, pageSize: number): T[] {
@@ -26,12 +27,12 @@ export default function DataTable<T>({
   items,
   columns,
 }: {
-  items: (T & { id?: string | number})[];
+  items: (T & { id?: string | number })[];
   columns: ColumnDef<T>[];
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  
+
   function changePageSize(val: number) {
     setPageSize(val);
     setCurrentPage(1);
@@ -50,15 +51,18 @@ export default function DataTable<T>({
         w="100%"
       >
         <Table.Root size="md" variant="outline" overflow="scroll">
+          <Table.ColumnGroup>
+            {columns.map((column) => (
+              <Table.Column key={column.accessor} htmlWidth={column.width} />
+            ))}
+          </Table.ColumnGroup>
           <Table.Header
             style={{ top: "0", margin: "0", zIndex: "1", position: "sticky" }}
           >
             <Table.Row>
               {columns.map((column) => {
                 return (
-                  <Table.ColumnHeader
-                    key={column.accessor}
-                  >
+                  <Table.ColumnHeader key={column.accessor}>
                     {column.title}
                   </Table.ColumnHeader>
                 );
@@ -85,9 +89,9 @@ export default function DataTable<T>({
       </Box>
 
       <Flex mt="3" justifyContent="center">
-        <PageSizeSelector value={pageSize} onChange={changePageSize}/>
+        <PageSizeSelector value={pageSize} onChange={changePageSize} />
         <PaginationRoot
-            page={currentPage}
+          page={currentPage}
           count={items.length}
           pageSize={pageSize}
           defaultPage={1}
@@ -98,7 +102,7 @@ export default function DataTable<T>({
           <HStack>
             <PaginationPrevTrigger />
             <Box hideBelow="md">
-                <PaginationItems />
+              <PaginationItems />
             </Box>
             <PaginationPageText hideFrom="md" />
             <PaginationNextTrigger />

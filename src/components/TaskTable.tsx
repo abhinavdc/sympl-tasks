@@ -11,6 +11,7 @@ const columns: ColumnDef<Task>[] = [
   {
     accessor: "title",
     title: "Task",
+    width: "50%",
   },
   {
     accessor: "priority",
@@ -18,6 +19,7 @@ const columns: ColumnDef<Task>[] = [
     render: (item: Task) => {
       return <PriorityBadge priority={item.priority} />;
     },
+    width: "25%",
   },
   {
     accessor: "status",
@@ -25,10 +27,7 @@ const columns: ColumnDef<Task>[] = [
     render: (item: Task) => {
       return <StatusBadge status={item.status} />;
     },
-  },
-  {
-    accessor: "title",
-    title: "Task",
+    width: "25%",
   },
 ];
 
