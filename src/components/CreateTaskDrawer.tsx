@@ -141,12 +141,16 @@ export default function CreateTaskDrawer({
       setCustomFields(prefillValue.customFields);
     } else {
       setEditMode(false);
-      setTitle("");
-      setStatus(Status.NotStarted);
-      setPriority(Priority.None);
-      setCustomFields({});
+      resetAllFields();
     }
   }, [prefillValue]);
+
+  function resetAllFields() {
+    setTitle("");
+    setStatus(Status.NotStarted);
+    setPriority(Priority.None);
+    setCustomFields({});
+  }
 
   const [customFieldSchema, setCustomFieldSchema] = useState(
     createCustomFieldSchema(customFieldDefinitions)
@@ -182,10 +186,7 @@ export default function CreateTaskDrawer({
       addTask({ title, priority, status, customFields });
     }
     setOpenDrawer(false);
-    setTitle("");
-    setPriority(Priority.None);
-    setStatus(Status.NotStarted);
-    setCustomFields({});
+    resetAllFields();
     setErrors({ title: "", priority: "", status: "", customFields: {} });
   };
 
@@ -342,6 +343,7 @@ export default function CreateTaskDrawer({
                 variant="outline"
                 onClick={() => {
                   setOpenDrawer(false);
+                  resetAllFields();
                 }}
               >
                 Cancel
