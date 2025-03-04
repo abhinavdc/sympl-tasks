@@ -36,12 +36,11 @@ import {
   SelectTrigger,
   SelectValueText,
 } from "./ui/select";
-import {
-  z,
-  ZodRawShape,
-} from "zod";
+import { z, ZodRawShape } from "zod";
 import { Checkbox } from "./ui/checkbox";
 import { PriorityOptions, StatusOptions } from "@/data/constants";
+import AddCustomFields from "./AddCustomFields";
+import { LuPencil } from "react-icons/lu";
 
 function tranformCustomFieldErrors(
   fieldErrors: z.ZodFormattedError<{
@@ -66,18 +65,24 @@ function tranformCustomFieldErrors(
 const createCustomFieldSchema = (
   definitions: CustomFieldDefinition[]
 ): CustomFieldSchemaType => {
-  const schemaObject: ZodRawShape = definitions.reduce((acc, { key, type }) => {
-    let fieldSchema;
-    if (type === "text") {
-      fieldSchema = z.string().min(1, "Required");
-    } else if (type === "number") {
-      fieldSchema = z.number().min(0, "Must be a positive number");
-    } else {
-      fieldSchema = z.boolean();
-    }
-    (acc as ZodRawShape)[key] = fieldSchema;
-    return acc;
-  }, {});
+  const schemaObject: ZodRawShape = definitions.reduce(
+    (acc, { key, type, required }) => {
+      let fieldSchema;
+      if (required) {
+        if (type === "text") {
+          fieldSchema = z.string().min(1, "Required");
+        } else if (type === "number") {
+          fieldSchema = z.number().min(0, "Must be a positive number");
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        } else if (type === "checkbox") {
+          fieldSchema = z.boolean();
+        }
+        if (fieldSchema) (acc as ZodRawShape)[key] = fieldSchema;
+      }
+      return acc;
+    },
+    {}
+  );
 
   return z.object(schemaObject);
 };
@@ -105,15 +110,15 @@ export default function CreateTaskDrawer({
   task?: Task | null;
 }) {
   const prioritySelectOptions = createListCollection({
-    items: PriorityOptions
+    items: PriorityOptions,
   });
 
   const statusSelectOptions = createListCollection({
-    items: StatusOptions
+    items: StatusOptions,
   });
 
+  const contentRef = useRef<HTMLDivElement>(null);
   const { addTask, updateTask, customFieldDefinitions } = useTaskStore();
-
   const [editMode, setEditMode] = useState(false);
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState(Priority.None);
@@ -125,6 +130,7 @@ export default function CreateTaskDrawer({
     status: "",
     customFields: {},
   });
+  const [openFieldDrawer, setOpenFieldDrawer] = useState(false);
 
   useEffect(() => {
     if (prefillValue) {
@@ -142,7 +148,13 @@ export default function CreateTaskDrawer({
     }
   }, [prefillValue]);
 
-  const customFieldSchema = createCustomFieldSchema(customFieldDefinitions);
+  const [customFieldSchema, setCustomFieldSchema] = useState(
+    createCustomFieldSchema(customFieldDefinitions)
+  );
+
+  useEffect(() => {
+    setCustomFieldSchema(createCustomFieldSchema(customFieldDefinitions));
+  }, [customFieldDefinitions]);
 
   const taskSchema = createTaskSchema(customFieldSchema);
 
@@ -177,14 +189,19 @@ export default function CreateTaskDrawer({
     setErrors({ title: "", priority: "", status: "", customFields: {} });
   };
 
-  const contentRef = useRef<HTMLDivElement>(null);
-
   const handleCustomFieldChange = (
     key: string,
     value: string | number | boolean
   ) => {
     setCustomFields((prev) => ({ ...prev, [key]: value }));
   };
+
+  function editFields() {
+    setOpenDrawer(false);
+    setTimeout(() => {
+      setOpenFieldDrawer(true);
+    }, 200)
+  }
 
   return (
     <>
@@ -193,6 +210,7 @@ export default function CreateTaskDrawer({
         onOpenChange={(e) => {
           setOpenDrawer(e.open);
         }}
+        size="sm"
       >
         <DrawerBackdrop />
         <DrawerContent ref={contentRef}>
@@ -273,9 +291,16 @@ export default function CreateTaskDrawer({
                 <Field.ErrorText>{errors.priority}</Field.ErrorText>
               </Field.Root>
 
-              {customFieldDefinitions.map(({ key, label, type }) => (
-                <Field.Root key={key} invalid={!!errors.customFields[key]}>
-                  <Field.Label>{label}</Field.Label>
+              {customFieldDefinitions.map(({ key, label, type, required }) => (
+                <Field.Root
+                  key={key}
+                  invalid={!!errors.customFields[key]}
+                  required={required}
+                >
+                  <Field.Label>
+                    {label}
+                    <FieldRequiredIndicator ml="1" />
+                  </Field.Label>
                   {type === "text" && (
                     <Input
                       value={(customFields[key] as string | number) || ""}
@@ -304,6 +329,11 @@ export default function CreateTaskDrawer({
                   <Field.ErrorText>{errors.customFields[key]}</Field.ErrorText>
                 </Field.Root>
               ))}
+
+              <Button variant="plain" size="sm" onClick={editFields}>
+                <LuPencil />
+                Add/Modify Fields
+              </Button>
             </VStack>
           </DrawerBody>
           <DrawerFooter>
@@ -324,6 +354,13 @@ export default function CreateTaskDrawer({
           <DrawerCloseTrigger />
         </DrawerContent>
       </DrawerRoot>
+
+      <AddCustomFields
+        open={openFieldDrawer}
+        onClose={() => {
+          setOpenFieldDrawer(false);
+        }}
+      />
     </>
   );
 }

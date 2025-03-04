@@ -22,11 +22,10 @@ import {
 } from "react-icons/lu";
 import { FieldTypes } from "@/data/types";
 import TableFilterDrawer, { TaskFilter } from "./TableFilterDrawer";
-
-type StringKeyOf<T> = Extract<keyof T, string>;
+import { get } from "lodash";
 
 export interface ColumnDef<T> {
-  accessor?: StringKeyOf<T>;
+  accessor?: string;
   title: string;
   render?: (item: T) => React.ReactNode;
   width?: string;
@@ -55,11 +54,11 @@ export default function DataTable<T>({
   const [pageSize, setPageSize] = useState(10);
   const [filters, setFilters] = useState<TaskFilter>({});
 
-  const [sortColumn, setSortColumn] = useState<StringKeyOf<T> | null>(null);
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   // Handle column sorting
-  const handleSort = (column: StringKeyOf<T>) => {
+  const handleSort = (column: string) => {
     if (sortColumn === column) {
       // Toggle sort direction if same column
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -74,6 +73,7 @@ export default function DataTable<T>({
   const processedData = useMemo(() => {
     let result = [...items];
 
+    // TODO make filtering and soring agnostic to the type of data
     // Apply filters
     if (Object.keys(filters).length) {
       const { title, priority, status, customFields } = filters;
@@ -205,7 +205,7 @@ export default function DataTable<T>({
                     >
                       {column.render
                         ? column.render(item)
-                        : String(column.accessor ? item[column.accessor] : "")}
+                        : String(column.accessor ? get(item, column.accessor) ?? "(empty)": "")}
                     </Table.Cell>
                   );
                 })}

@@ -12,8 +12,8 @@ import { toaster } from "./ui/toaster";
 import { PriorityOptions, StatusOptions } from "@/data/constants";
 
 export default function TaskTable() {
-  const { tasks, deleteTask } = useTaskStore();
-  const [openDrawer, setOpenDrawer] = useState(false);
+  const { tasks, deleteTask, customFieldDefinitions } = useTaskStore();
+  const [openTaskDrawer, setOpenTaskDrawer] = useState(false);
   const [openConfirmation, setOpenConfirmation] = useState(false);
   const [markedDeleteItem, setMarkedDeleteItem] = useState<number | null>(null);
   const [markedEditItem, setMarkedEditItem] = useState<Task | null>(null);
@@ -51,6 +51,7 @@ export default function TaskTable() {
       filterType: "select",
       filterOptions: StatusOptions,
     },
+    ...createCustomFieldColumns(),
     {
       title: "Actions",
       render: (item: Task) => (
@@ -82,6 +83,18 @@ export default function TaskTable() {
     },
   ];
 
+  function createCustomFieldColumns(): ColumnDef<Task>[] {
+    const columns: ColumnDef<Task>[] = customFieldDefinitions.map((x) => {
+      return {
+        accessor: `customFields.${x.key}`,
+        title: x.label,
+        sortable: true,
+        filterable: true,
+      };
+    });
+    return columns;
+  }
+
   function deleteItem(itemId: number): void {
     deleteTask(itemId);
     setOpenConfirmation(false);
@@ -103,12 +116,12 @@ export default function TaskTable() {
 
   function handleEdit(item: Task): void {
     setMarkedEditItem(item);
-    setOpenDrawer(true);
+    setOpenTaskDrawer(true);
   }
 
   function handleCreate(): void {
     setMarkedEditItem(null);
-    setOpenDrawer(true);
+    setOpenTaskDrawer(true);
   }
 
   return (
@@ -120,8 +133,8 @@ export default function TaskTable() {
       </DataTable>
 
       <CreateTaskDrawer
-        openDrawer={openDrawer}
-        setOpenDrawer={setOpenDrawer}
+        openDrawer={openTaskDrawer}
+        setOpenDrawer={setOpenTaskDrawer}
         task={markedEditItem}
       />
       <DeleteConfirmation
