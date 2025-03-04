@@ -1,4 +1,12 @@
-import { Box, Button, Flex, HStack, Table, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Center,
+  Flex,
+  HStack,
+  Table,
+  Text,
+} from "@chakra-ui/react";
 import { useMemo, useState } from "react";
 import {
   PaginationItems,
@@ -281,6 +289,7 @@ export default function DataTable<T>({
             ))}
           </Table.Body>
         </Table.Root>
+        {!processedData.length && <Center h="300px">No Results</Center>}
       </Box>
 
       <Flex mt="3" justifyContent="center">
