@@ -33,7 +33,6 @@ export default function TaskTable() {
       render: (item: Task) => {
         return <PriorityBadge priority={item.priority} />;
       },
-      width: "20%",
       sortable: true,
       filterable: true,
       filterType: "select",
@@ -45,7 +44,6 @@ export default function TaskTable() {
       render: (item: Task) => {
         return <StatusBadge status={item.status} />;
       },
-      width: "20%",
       sortable: true,
       filterable: true,
       filterType: "select",
