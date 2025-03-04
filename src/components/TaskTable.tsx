@@ -15,17 +15,20 @@ import {
   Portal,
 } from "@chakra-ui/react";
 import { useTaskStore } from "@/data/store";
-import { LuPencil, LuTrash } from "react-icons/lu";
+import { LuPencil, LuPlus, LuTrash } from "react-icons/lu";
 import DeleteConfirmation from "./DeleteConfirmation";
 import { useState } from "react";
 import { toaster } from "./ui/toaster";
 import { PriorityOptions, StatusOptions } from "@/data/constants";
+import EmptyState from "./EmptyState";
 
 export default function TaskTable() {
   const { tasks, deleteTask, customFieldDefinitions } = useTaskStore();
   const [openTaskDrawer, setOpenTaskDrawer] = useState(false);
   const [openConfirmation, setOpenConfirmation] = useState(false);
-  const [markedDeleteItem, setMarkedDeleteItem] = useState<number[] | null>(null);
+  const [markedDeleteItem, setMarkedDeleteItem] = useState<number[] | null>(
+    null
+  );
   const [markedEditItem, setMarkedEditItem] = useState<Task | null>(null);
   const [selection, setSelection] = useState<number[]>([]);
 
@@ -107,8 +110,8 @@ export default function TaskTable() {
   function deleteItem(itemIds: number[]): void {
     itemIds.forEach((itemId) => {
       deleteTask(itemId);
-    })
-    if (itemIds.length) setSelection([])
+    });
+    if (itemIds.length) setSelection([]);
     setOpenConfirmation(false);
     toaster.create({
       title: `Successfuly remove task`,
@@ -137,21 +140,30 @@ export default function TaskTable() {
   }
 
   function handleBulkDelete() {
-    handleDelete(selection)
+    handleDelete(selection);
   }
 
   return (
     <>
-      <DataTable
-        columns={columns}
-        items={tasks}
-        selection={selection}
-        setSelection={setSelection}
-      >
-        <Button variant="outline" size="sm" onClick={handleCreate}>
-          Create Task
-        </Button>
-      </DataTable>
+      {tasks.length ? (
+        <DataTable
+          columns={columns}
+          items={tasks}
+          selection={selection}
+          setSelection={setSelection}
+        >
+          <Button variant="outline" size="sm" onClick={handleCreate}>
+            Create Task
+          </Button>
+        </DataTable>
+      ) : (
+        <EmptyState>
+          <Button variant="subtle" size="sm" onClick={handleCreate}>
+            <LuPlus />
+            Get started by creating a task
+          </Button>
+        </EmptyState>
+      )}
 
       <CreateTaskDrawer
         openDrawer={openTaskDrawer}
