@@ -36,7 +36,7 @@ export default function TaskTable() {
     {
       accessor: "title",
       title: "Task",
-      width: "50%",
+      width: "30%",
       sortable: true,
       filterable: true,
       filterType: "text",
