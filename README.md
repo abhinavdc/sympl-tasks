@@ -62,6 +62,14 @@ Commits:
 - Chakra UI: Responsive and accessible design components
 - Zustand: Lightweight state management
 - Zod: Form schema validation
+- Adhered to eslint rules from the following packages for Production like linting
+    ````json
+        "eslint-plugin-jsx-a11y": "^6.10.2",
+        "eslint-plugin-react-dom": "^1.29.0",
+        "eslint-plugin-react-hooks": "^5.1.0",
+        "eslint-plugin-react-refresh": "^0.4.19",
+        "eslint-plugin-react-x": "^1.29.0",
+    ````
 
 ### ✅ To Be Done
 - Kanban View
