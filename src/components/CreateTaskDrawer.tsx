@@ -30,6 +30,17 @@ import {
   SelectValueText,
 } from "./ui/select";
 import { toHumanReadable } from "@/helpers/stringHelper";
+import { z } from "zod";
+
+const taskSchema = z.object({
+  title: z.string().min(3, "Title must be at least 3 characters"),
+  priority: z.nativeEnum(Priority, {
+    errorMap: () => ({ message: "Invalid priority" }),
+  }),
+  status: z.nativeEnum(Status, {
+    errorMap: () => ({ message: "Invalid status" }),
+  }),
+});
 
 export default function CreateTaskDrawer() {
   const prioritySelectOptions = createListCollection({
@@ -50,14 +61,25 @@ export default function CreateTaskDrawer() {
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState(Priority.None);
   const [status, setStatus] = useState(Status.NotStarted);
+  const [errors, setErrors] = useState({ title: "", priority: "", status: "" });
 
   const handleSubmit = () => {
-    if (!title.trim()) return;
+    const result = taskSchema.safeParse({ title, priority, status });
+    if (!result.success) {
+      const fieldErrors = result.error.format();
+      setErrors({
+        title: fieldErrors.title?._errors[0] ?? "",
+        priority: fieldErrors.priority?._errors[0] ?? "",
+        status: fieldErrors.status?._errors[0] ?? "",
+      });
+      return;
+    }
     addTask({ title, priority, status });
     setOpen(false);
     setTitle("");
     setPriority(Priority.None);
     setStatus(Status.NotStarted);
+    setErrors({ title: "", priority: "", status: "" });
   };
 
   const contentRef = useRef<HTMLDivElement>(null);
@@ -82,7 +104,7 @@ export default function CreateTaskDrawer() {
           </DrawerHeader>
           <DrawerBody>
             <VStack gap="4">
-              <Field.Root required>
+              <Field.Root required invalid={!!errors.title}>
                 <Field.Label>
                   Title
                   <Field.RequiredIndicator />
@@ -93,9 +115,10 @@ export default function CreateTaskDrawer() {
                     setTitle(e.target.value);
                   }}
                 />
+                <Field.ErrorText>{errors.title}</Field.ErrorText>
               </Field.Root>
 
-              <Field.Root>
+              <Field.Root invalid={!!errors.status}>
                 <SelectRoot
                   collection={statusSelectOptions}
                   value={[status]}
@@ -121,9 +144,10 @@ export default function CreateTaskDrawer() {
                     ))}
                   </SelectContent>
                 </SelectRoot>
+                <Field.ErrorText>{errors.status}</Field.ErrorText>
               </Field.Root>
 
-              <Field.Root>
+              <Field.Root invalid={!!errors.priority}>
                 <SelectRoot
                   collection={prioritySelectOptions}
                   value={[priority]}
@@ -149,6 +173,7 @@ export default function CreateTaskDrawer() {
                     ))}
                   </SelectContent>
                 </SelectRoot>
+                <Field.ErrorText>{errors.priority}</Field.ErrorText>
               </Field.Root>
             </VStack>
           </DrawerBody>
