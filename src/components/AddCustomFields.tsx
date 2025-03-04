@@ -4,6 +4,7 @@ import {
   createListCollection,
   Field,
   HStack,
+  Text,
   IconButton,
   Input,
   VStack,
@@ -51,8 +52,9 @@ export default function AddCustomFields({
 }) {
   const { customFieldDefinitions, setCustomFieldDefinitions } = useTaskStore();
   const contentRef = useRef<HTMLDivElement>(null);
-
+  
   const [customFields, setCustomFields] = useState(customFieldDefinitions);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   useEffect(() => {
     setCustomFields(customFieldDefinitions);
@@ -96,11 +98,53 @@ export default function AddCustomFields({
     setCustomFields(updatedFields);
   };
 
+  // Validate field names
+  const validateFieldNames = (fields: CustomFieldDefinition[]): string[] => {
+    const errors: string[] = [];
+    const nameCount: Record<string, number> = {};
+
+    // Check for empty names and duplicates
+    fields.forEach((field, index) => {
+      // Trim the label to remove whitespace
+      const trimmedLabel = field.label.trim();
+
+      // Check for empty name
+      if (!trimmedLabel) {
+        errors.push(`Field ${String(index + 1)} must have a name`);
+      }
+
+      // Check for duplicate names
+      nameCount[trimmedLabel] = (nameCount[trimmedLabel] || 0) + 1;
+    });
+
+    // Add errors for duplicate names
+    Object.entries(nameCount).forEach(([name, count]) => {
+      if (count > 1 && name) {
+        errors.push(`Duplicate field name: "${name}"`);
+      }
+    });
+
+    return errors;
+  };
+
   // Save changes and close modal
-  const handleSave = () => {
+  function handleSave() {
+    const errors = validateFieldNames(customFields);
+
+    if (errors.length > 0) {
+      // Set validation errors and prevent saving
+      setValidationErrors(errors);
+      return;
+    }
+
     setCustomFieldDefinitions(customFields);
     onClose();
-  };
+  }
+
+  function resetAllField() {
+    setValidationErrors([]);
+    setCustomFields(customFieldDefinitions)
+  }
 
   return (
     <DialogRoot
@@ -117,6 +161,15 @@ export default function AddCustomFields({
           <DialogTitle>Add/Modify Custom Fields</DialogTitle>
         </DialogHeader>
         <DialogBody>
+          
+          {validationErrors.length > 0 && (
+            <Box mb={4} color="red.500">
+              {validationErrors.map((error, index) => (
+                <Text key={index}> {error}</Text>
+              ))}
+            </Box>
+          )}
+  
           <VStack gap={4} align="stretch">
             {customFields.map((field, index) => (
               // eslint-disable-next-line react-x/no-array-index-key
@@ -197,7 +250,7 @@ export default function AddCustomFields({
         </DialogBody>
         <DialogFooter>
           <DialogActionTrigger asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline" onClick={resetAllField} >Cancel</Button>
           </DialogActionTrigger>
           <Button onClick={handleSave}>Save</Button>
         </DialogFooter>
