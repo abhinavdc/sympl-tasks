@@ -41,6 +41,7 @@ import { Checkbox } from "./ui/checkbox";
 import { PriorityOptions, StatusOptions } from "@/data/constants";
 import AddCustomFields from "./AddCustomFields";
 import { LuPencil } from "react-icons/lu";
+import { toaster } from "./ui/toaster";
 
 function tranformCustomFieldErrors(
   fieldErrors: z.ZodFormattedError<{
@@ -188,6 +189,10 @@ export default function CreateTaskDrawer({
     setOpenDrawer(false);
     resetAllFields();
     setErrors({ title: "", priority: "", status: "", customFields: {} });
+    toaster.create({
+      title: `Successfuly added task`,
+      type: "success",
+    });
   };
 
   const handleCustomFieldChange = (
@@ -201,7 +206,7 @@ export default function CreateTaskDrawer({
     setOpenDrawer(false);
     setTimeout(() => {
       setOpenFieldDrawer(true);
-    }, 200)
+    }, 200);
   }
 
   return (

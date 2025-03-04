@@ -32,6 +32,7 @@ import { useTaskStore } from "@/data/store";
 import { Checkbox } from "./ui/checkbox";
 import { CustomFieldDefinition } from "@/data/types";
 import { generateUniqueId } from "@/helpers/stringHelper";
+import { toaster } from "./ui/toaster";
 
 // Predefined field types
 const FIELD_TYPES = [
@@ -49,7 +50,7 @@ export default function AddCustomFields({
 }) {
   const { customFieldDefinitions, setCustomFieldDefinitions } = useTaskStore();
   const contentRef = useRef<HTMLDivElement>(null);
-  
+
   const [customFields, setCustomFields] = useState(customFieldDefinitions);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
@@ -135,12 +136,16 @@ export default function AddCustomFields({
     }
 
     setCustomFieldDefinitions(customFields);
+    toaster.create({
+      title: `Successfuly updated custom fields`,
+      type: "success",
+    });
     onClose();
   }
 
   function resetAllField() {
     setValidationErrors([]);
-    setCustomFields(customFieldDefinitions)
+    setCustomFields(customFieldDefinitions);
   }
 
   return (
@@ -158,7 +163,6 @@ export default function AddCustomFields({
           <DialogTitle>Add/Modify Custom Fields</DialogTitle>
         </DialogHeader>
         <DialogBody>
-          
           {validationErrors.length > 0 && (
             <Box mb={4} color="red.500">
               {validationErrors.map((error, index) => (
@@ -166,7 +170,7 @@ export default function AddCustomFields({
               ))}
             </Box>
           )}
-  
+
           <VStack gap={4} align="stretch">
             {customFields.map((field, index) => (
               // eslint-disable-next-line react-x/no-array-index-key
@@ -246,7 +250,9 @@ export default function AddCustomFields({
         </DialogBody>
         <DialogFooter>
           <DialogActionTrigger asChild>
-            <Button variant="outline" onClick={resetAllField} >Cancel</Button>
+            <Button variant="outline" onClick={resetAllField}>
+              Cancel
+            </Button>
           </DialogActionTrigger>
           <Button onClick={handleSave}>Save</Button>
         </DialogFooter>
