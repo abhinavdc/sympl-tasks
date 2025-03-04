@@ -8,7 +8,15 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useTaskStore } from "../data/store";
-import { CustomFieldDefinition, Errors, Priority, Status } from "@/data/types";
+import {
+  CustomFieldDefinition,
+  CustomFields,
+  CustomFieldSchemaType,
+  Errors,
+  Priority,
+  Status,
+  Task,
+} from "@/data/types";
 import {
   DrawerActionTrigger,
   DrawerBackdrop,
@@ -19,7 +27,6 @@ import {
   DrawerHeader,
   DrawerRoot,
   DrawerTitle,
-  DrawerTrigger,
 } from "./ui/drawer";
 import {
   SelectRoot,
@@ -32,18 +39,9 @@ import {
 import { toHumanReadable } from "@/helpers/stringHelper";
 import {
   z,
-  ZodBoolean,
-  ZodNumber,
-  ZodObject,
   ZodRawShape,
-  ZodString,
 } from "zod";
 import { Checkbox } from "./ui/checkbox";
-
-type CustomFields = Record<string, string | number | boolean>;
-type CustomFieldSchemaType = ZodObject<
-  Record<string, ZodString | ZodNumber | ZodBoolean>
->;
 
 function tranformCustomFieldErrors(
   fieldErrors: z.ZodFormattedError<{
@@ -97,7 +95,15 @@ function createTaskSchema(customFieldSchema: CustomFieldSchemaType) {
   });
 }
 
-export default function CreateTaskDrawer() {
+export default function CreateTaskDrawer({
+  openDrawer,
+  setOpenDrawer,
+  task: prefillValue = null,
+}: {
+  openDrawer: boolean;
+  setOpenDrawer: (open: boolean) => void;
+  task?: Task | null;
+}) {
   const prioritySelectOptions = createListCollection({
     items: Object.values(Priority).map((option) => {
       return { label: toHumanReadable(option), value: option };
@@ -110,9 +116,9 @@ export default function CreateTaskDrawer() {
     }),
   });
 
-  const [open, setOpen] = useState(false);
-  const { addTask, customFieldDefinitions } = useTaskStore();
+  const { addTask, updateTask, customFieldDefinitions } = useTaskStore();
 
+  const [editMode, setEditMode] = useState(false);
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState(Priority.None);
   const [status, setStatus] = useState(Status.NotStarted);
@@ -123,6 +129,22 @@ export default function CreateTaskDrawer() {
     status: "",
     customFields: {},
   });
+
+  useEffect(() => {
+    if (prefillValue) {
+      setEditMode(true);
+      setTitle(prefillValue.title);
+      setStatus(prefillValue.status);
+      setPriority(prefillValue.priority);
+      setCustomFields(prefillValue.customFields);
+    } else {
+      setEditMode(false);
+      setTitle("");
+      setStatus(Status.NotStarted);
+      setPriority(Priority.None);
+      setCustomFields({});
+    }
+  }, [prefillValue]);
 
   const customFieldSchema = createCustomFieldSchema(customFieldDefinitions);
 
@@ -146,12 +168,16 @@ export default function CreateTaskDrawer() {
       });
       return;
     }
-    addTask({ title, priority, status });
-    setOpen(false);
+    if (prefillValue?.id) {
+      updateTask(prefillValue.id, { title, priority, status, customFields });
+    } else {
+      addTask({ title, priority, status, customFields });
+    }
+    setOpenDrawer(false);
     setTitle("");
     setPriority(Priority.None);
     setStatus(Status.NotStarted);
-    setCustomFields({})
+    setCustomFields({});
     setErrors({ title: "", priority: "", status: "", customFields: {} });
   };
 
@@ -167,17 +193,12 @@ export default function CreateTaskDrawer() {
   return (
     <>
       <DrawerRoot
-        open={open}
+        open={openDrawer}
         onOpenChange={(e) => {
-          setOpen(e.open);
+          setOpenDrawer(e.open);
         }}
       >
         <DrawerBackdrop />
-        <DrawerTrigger asChild>
-          <Button variant="outline" size="sm">
-            Create Task
-          </Button>
-        </DrawerTrigger>
         <DrawerContent ref={contentRef}>
           <DrawerHeader>
             <DrawerTitle>Create New Task</DrawerTitle>
@@ -294,13 +315,15 @@ export default function CreateTaskDrawer() {
               <Button
                 variant="outline"
                 onClick={() => {
-                  setOpen(false);
+                  setOpenDrawer(false);
                 }}
               >
                 Cancel
               </Button>
             </DrawerActionTrigger>
-            <Button onClick={handleSubmit}>Save</Button>
+            <Button onClick={handleSubmit}>
+              {editMode ? "Update" : "Save"}
+            </Button>
           </DrawerFooter>
           <DrawerCloseTrigger />
         </DrawerContent>

@@ -1,8 +1,11 @@
+import { ZodObject, ZodString, ZodNumber, ZodBoolean } from "zod";
+
 export interface Task {
   id: number;
   title: string;
   status: Status;
   priority: Priority;
+  customFields: CustomFields;
 }
 
 export enum Priority {
@@ -34,3 +37,10 @@ export interface CustomFieldDefinition {
   type: CustomFieldType;
   required: boolean;
 }
+
+
+export type CustomFields = Record<string, string | number | boolean>;
+
+export type CustomFieldSchemaType = ZodObject<
+  Record<string, ZodString | ZodNumber | ZodBoolean>
+>;

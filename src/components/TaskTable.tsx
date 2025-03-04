@@ -4,7 +4,7 @@ import StatusBadge from "./StatusBadge";
 import PriorityBadge from "./PriorityBadge";
 import Toolbar from "./Toolbar";
 import CreateTaskDrawer from "./CreateTaskDrawer";
-import { Flex, HStack, IconButton } from "@chakra-ui/react";
+import { Button, Flex, HStack, IconButton } from "@chakra-ui/react";
 import { useTaskStore } from "@/data/store";
 import { LuPencil, LuTrash } from "react-icons/lu";
 import DeleteConfirmation from "./DeleteConfirmation";
@@ -13,8 +13,10 @@ import { toaster } from "./ui/toaster";
 
 export default function TaskTable() {
   const { tasks, deleteTask } = useTaskStore();
-  const [openConfirmation, setOpenConfirmation] = useState(false)
-  const [markedDeleteItem, setMarkedDeleteItem] = useState<number | null>(null)
+  const [openDrawer, setOpenDrawer] = useState(false);
+  const [openConfirmation, setOpenConfirmation] = useState(false);
+  const [markedDeleteItem, setMarkedDeleteItem] = useState<number | null>(null);
+  const [markedEditItem, setMarkedEditItem] = useState<Task | null>(null);
 
   const columns: ColumnDef<Task>[] = [
     {
@@ -46,7 +48,9 @@ export default function TaskTable() {
             variant="ghost"
             aria-label="Edit Task"
             size="xs"
-            onClick={() => { handleEdit(item); }}
+            onClick={() => {
+              handleEdit(item);
+            }}
           >
             <LuPencil />
           </IconButton>
@@ -55,7 +59,9 @@ export default function TaskTable() {
             aria-label="Delete Task"
             size="xs"
             colorScheme="red"
-            onClick={() => { handleDelete(item.id) }}
+            onClick={() => {
+              handleDelete(item.id);
+            }}
           >
             <LuTrash />
           </IconButton>
@@ -66,12 +72,12 @@ export default function TaskTable() {
   ];
 
   function deleteItem(itemId: number): void {
-    deleteTask(itemId)
+    deleteTask(itemId);
     setOpenConfirmation(false);
     toaster.create({
       title: `Successfuly remove task`,
       type: "success",
-    })
+    });
   }
 
   function cancelDelete(): void {
@@ -83,19 +89,39 @@ export default function TaskTable() {
     setMarkedDeleteItem(itemId);
     setOpenConfirmation(true);
   }
-  
+
   function handleEdit(item: Task): void {
-    throw new Error("Function not implemented.");
+    setMarkedEditItem(item);
+    setOpenDrawer(true);
+  }
+
+  function handleCreate(): void {
+    setMarkedEditItem(null);
+    setOpenDrawer(true);
   }
 
   return (
     <>
       <Flex justifyContent="space-between" w="100%" py="2">
         <Toolbar />
-        <CreateTaskDrawer />
+        <Button variant="outline" size="sm" onClick={handleCreate}>
+          Create Task
+        </Button>
       </Flex>
-      <DeleteConfirmation open={openConfirmation} onClose={cancelDelete} itemId={markedDeleteItem} onConfirm={deleteItem} />
+
       <DataTable columns={columns} items={tasks} />
+
+      <CreateTaskDrawer
+        openDrawer={openDrawer}
+        setOpenDrawer={setOpenDrawer}
+        task={markedEditItem}
+      />
+      <DeleteConfirmation
+        open={openConfirmation}
+        onClose={cancelDelete}
+        itemId={markedDeleteItem}
+        onConfirm={deleteItem}
+      />
     </>
   );
 }
