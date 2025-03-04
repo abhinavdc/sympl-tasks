@@ -18,3 +18,19 @@ export enum Status {
   InProgress = "in_progress",
   NotStarted = "not_started",
 }
+
+export interface Errors {
+  title: string;
+  priority: string;
+  status: string;
+  customFields: Record<string, string>; // Maps custom field keys to error messages
+}
+
+type CustomFieldType = "text" | "number" | "checkbox";
+
+export interface CustomFieldDefinition {
+  key: string;
+  label: string;
+  type: CustomFieldType;
+  required: boolean;
+}

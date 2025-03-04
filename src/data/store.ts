@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Task } from "./types";
+import { CustomFieldDefinition, Task } from "./types";
 import { persist } from "zustand/middleware";
 
 interface TaskStore {
@@ -8,6 +8,8 @@ interface TaskStore {
   updateTask: (id: number, updatedTask: Partial<Task>) => void;
   deleteTask: (id: number) => void;
   clearTasks: () => void;
+  customFieldDefinitions: CustomFieldDefinition[];
+  setCustomFieldDefinitions: (data: CustomFieldDefinition[]) => void;
 }
 
 export const useTaskStore = create<TaskStore>()(
@@ -34,6 +36,20 @@ export const useTaskStore = create<TaskStore>()(
 
       clearTasks: () => {
         set({ tasks: [] });
+      },
+
+      customFieldDefinitions: [
+        {
+          key: "estimatedTime",
+          label: "Estimated Time (hrs)",
+          type: "number",
+          required: true,
+        },
+        { key: "isUrgent", label: "Urgent?", type: "checkbox", required: true },
+        { key: "notes", label: "Notes", type: "text", required: true },
+      ],
+      setCustomFieldDefinitions: (fields: CustomFieldDefinition[]) => {
+        set({ customFieldDefinitions: fields });
       },
     }),
     {
