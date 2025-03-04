@@ -67,7 +67,6 @@ Commits:
 - Kanban View
 - Undo Redo
 - Bulk Edit (delete done)
-- Generate the filtering logic from column definition to make DataTable component truly resuable for any usecase
 
 ### 💻 Run the Application
 ````bash
