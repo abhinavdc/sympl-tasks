@@ -18,8 +18,8 @@ export default function DeleteConfirmation({
 }: {
   open: boolean;
   onClose: () => void;
-  onConfirm: (id: number) => void;
-  itemId: number | null;
+  onConfirm: (id: number[]) => void;
+  itemId: number[] | null;
 }) {
   return (
     <DialogRoot
@@ -34,7 +34,7 @@ export default function DeleteConfirmation({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete</DialogTitle>
+          <DialogTitle>Confirm</DialogTitle>
         </DialogHeader>
         <DialogBody>
           <Text>Are you sure you want to delete?</Text>
@@ -47,10 +47,10 @@ export default function DeleteConfirmation({
           </DialogActionTrigger>
           <Button
             onClick={() => {
-              if (itemId) onConfirm(itemId);
+              if (itemId?.length) onConfirm(itemId);
             }}
           >
-            Save
+            Delete
           </Button>
         </DialogFooter>
         <DialogCloseTrigger />

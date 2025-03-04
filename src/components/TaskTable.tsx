@@ -3,7 +3,17 @@ import { Task } from "@/data/types";
 import StatusBadge from "./StatusBadge";
 import PriorityBadge from "./PriorityBadge";
 import CreateTaskDrawer from "./CreateTaskDrawer";
-import { Button, HStack, IconButton } from "@chakra-ui/react";
+import {
+  ActionBar,
+  ActionBarContent,
+  ActionBarRoot,
+  ActionBarSelectionTrigger,
+  ActionBarSeparator,
+  Button,
+  HStack,
+  IconButton,
+  Portal,
+} from "@chakra-ui/react";
 import { useTaskStore } from "@/data/store";
 import { LuPencil, LuTrash } from "react-icons/lu";
 import DeleteConfirmation from "./DeleteConfirmation";
@@ -15,8 +25,9 @@ export default function TaskTable() {
   const { tasks, deleteTask, customFieldDefinitions } = useTaskStore();
   const [openTaskDrawer, setOpenTaskDrawer] = useState(false);
   const [openConfirmation, setOpenConfirmation] = useState(false);
-  const [markedDeleteItem, setMarkedDeleteItem] = useState<number | null>(null);
+  const [markedDeleteItem, setMarkedDeleteItem] = useState<number[] | null>(null);
   const [markedEditItem, setMarkedEditItem] = useState<Task | null>(null);
+  const [selection, setSelection] = useState<number[]>([]);
 
   const columns: ColumnDef<Task>[] = [
     {
@@ -70,7 +81,7 @@ export default function TaskTable() {
             size="xs"
             colorScheme="red"
             onClick={() => {
-              handleDelete(item.id);
+              handleDelete([item.id]);
             }}
           >
             <LuTrash />
@@ -93,8 +104,11 @@ export default function TaskTable() {
     return columns;
   }
 
-  function deleteItem(itemId: number): void {
-    deleteTask(itemId);
+  function deleteItem(itemIds: number[]): void {
+    itemIds.forEach((itemId) => {
+      deleteTask(itemId);
+    })
+    if (itemIds.length) setSelection([])
     setOpenConfirmation(false);
     toaster.create({
       title: `Successfuly remove task`,
@@ -107,7 +121,7 @@ export default function TaskTable() {
     setOpenConfirmation(false);
   }
 
-  function handleDelete(itemId: number): void {
+  function handleDelete(itemId: number[]): void {
     setMarkedDeleteItem(itemId);
     setOpenConfirmation(true);
   }
@@ -122,9 +136,18 @@ export default function TaskTable() {
     setOpenTaskDrawer(true);
   }
 
+  function handleBulkDelete() {
+    handleDelete(selection)
+  }
+
   return (
     <>
-      <DataTable columns={columns} items={tasks}>
+      <DataTable
+        columns={columns}
+        items={tasks}
+        selection={selection}
+        setSelection={setSelection}
+      >
         <Button variant="outline" size="sm" onClick={handleCreate}>
           Create Task
         </Button>
@@ -141,6 +164,22 @@ export default function TaskTable() {
         itemId={markedDeleteItem}
         onConfirm={deleteItem}
       />
+
+      <ActionBarRoot open={selection.length > 0}>
+        <Portal>
+          <ActionBar.Positioner>
+            <ActionBarContent>
+              <ActionBarSelectionTrigger>
+                {selection.length} selected
+              </ActionBarSelectionTrigger>
+              <ActionBarSeparator />
+              <Button variant="outline" size="sm" onClick={handleBulkDelete}>
+                Delete
+              </Button>
+            </ActionBarContent>
+          </ActionBar.Positioner>
+        </Portal>
+      </ActionBarRoot>
     </>
   );
 }

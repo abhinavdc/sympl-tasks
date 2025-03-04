@@ -1,11 +1,4 @@
-import {
-  Box,
-  Button,
-  Flex,
-  HStack,
-  Table,
-  Text,
-} from "@chakra-ui/react";
+import { Box, Button, Flex, HStack, Table, Text } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
 import {
   PaginationItems,
@@ -23,6 +16,7 @@ import {
 import { FieldTypes } from "@/data/types";
 import TableFilterDrawer, { TaskFilter } from "./TableFilterDrawer";
 import { get } from "lodash";
+import { Checkbox } from "./ui/checkbox";
 
 export interface ColumnDef<T> {
   accessor?: string;
@@ -43,16 +37,23 @@ function paginate<T>(array: T[], pageNumber: number, pageSize: number): T[] {
 export default function DataTable<T>({
   items,
   columns,
-  children
+  children,
+  selection,
+  setSelection,
 }: {
-  items: (T & { id?: string | number })[];
+  items: (T & { id?: number })[];
   columns: ColumnDef<T>[];
   children: React.ReactNode;
+  selection: number[];
+  setSelection: (data: number[]) => void;
 }) {
   const [openFilter, setOpenFilter] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [filters, setFilters] = useState<TaskFilter>({});
+
+  const hasSelection = selection.length > 0;
+  const indeterminate = hasSelection && selection.length < items.length;
 
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -142,13 +143,13 @@ export default function DataTable<T>({
             setOpenFilter(true);
           }}
           size="sm"
-          variant="outline" 
+          variant="outline"
         >
           <LuFilter />
         </Button>
         {children}
       </HStack>
-      
+
       <Box
         borderWidth="1px"
         borderColor="gray.200"
@@ -161,6 +162,8 @@ export default function DataTable<T>({
       >
         <Table.Root size="md" variant="outline" overflow="scroll">
           <Table.ColumnGroup>
+            <Table.Column htmlWidth="5%" />
+
             {columns.map((column) => (
               <Table.Column key={column.accessor} htmlWidth={column.width} />
             ))}
@@ -169,6 +172,26 @@ export default function DataTable<T>({
             style={{ top: "0", margin: "0", zIndex: "1", position: "sticky" }}
           >
             <Table.Row>
+              <Table.ColumnHeader w="6">
+                <Checkbox
+                  top="1"
+                  aria-label="Select all rows"
+                  checked={
+                    indeterminate ? "indeterminate" : selection.length > 0
+                  }
+                  onCheckedChange={(changes) => {
+                    setSelection(
+                      changes.checked
+                        ? items
+                            .map((item) => item.id)
+                            .filter(
+                              (id): id is number => id !== undefined
+                            )
+                        : []
+                    );
+                  }}
+                />
+              </Table.ColumnHeader>
               {columns.map((column) => {
                 return (
                   <Table.ColumnHeader
@@ -197,7 +220,28 @@ export default function DataTable<T>({
 
           <Table.Body>
             {paginate(processedData, currentPage, pageSize).map((item) => (
-              <Table.Row key={item.id}>
+              <Table.Row
+                key={item.id}
+                data-selected={
+                  item.id && selection.includes(item.id) ? "" : undefined
+                }
+              >
+                <Table.Cell>
+                  <Checkbox
+                    top="1"
+                    aria-label="Select row"
+                    checked={!!(item.id && selection.includes(item.id))}
+                    onCheckedChange={(changes) => {
+                      setSelection(
+                        changes.checked
+                          ? [...selection, item.id].filter(
+                              (id): id is number => id !== undefined
+                            )
+                          : selection.filter((id) => item.id && id !== item.id)
+                      );
+                    }}
+                  />
+                </Table.Cell>
                 {columns.map((column) => {
                   return (
                     <Table.Cell
@@ -205,7 +249,11 @@ export default function DataTable<T>({
                     >
                       {column.render
                         ? column.render(item)
-                        : String(column.accessor ? get(item, column.accessor) ?? "(empty)": "")}
+                        : String(
+                            column.accessor
+                              ? get(item, column.accessor) ?? "(empty)"
+                              : ""
+                          )}
                     </Table.Cell>
                   );
                 })}
