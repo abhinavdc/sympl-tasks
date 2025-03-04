@@ -43,16 +43,7 @@ export const useTaskStore = create<TaskStore>()(
         set({ tasks: [] });
       },
 
-      customFieldDefinitions: [
-        {
-          key: "estimatedTime",
-          label: "Estimated Time (hrs)",
-          type: "number",
-          required: true,
-        },
-        { key: "isUrgent", label: "Urgent?", type: "checkbox", required: true },
-        { key: "notes", label: "Notes", type: "text", required: true },
-      ],
+      customFieldDefinitions: [],
       setCustomFieldDefinitions: (fields: CustomFieldDefinition[]) => {
         set({ customFieldDefinitions: fields });
       },
