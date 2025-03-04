@@ -30,10 +30,44 @@ import {
   SelectValueText,
 } from "./ui/select";
 import { toHumanReadable } from "@/helpers/stringHelper";
-import { z, ZodRawShape } from "zod";
+import {
+  z,
+  ZodBoolean,
+  ZodNumber,
+  ZodObject,
+  ZodRawShape,
+  ZodString,
+} from "zod";
 import { Checkbox } from "./ui/checkbox";
 
-const createCustomFieldSchema = (definitions: CustomFieldDefinition[]) => {
+type CustomFields = Record<string, string | number | boolean>;
+type CustomFieldSchemaType = ZodObject<
+  Record<string, ZodString | ZodNumber | ZodBoolean>
+>;
+
+function tranformCustomFieldErrors(
+  fieldErrors: z.ZodFormattedError<{
+    title: string;
+    status: Status;
+    priority: Priority;
+    customFields: CustomFields;
+  }>
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(fieldErrors.customFields ?? {}).map(([key, value]) => [
+      key,
+      (
+        value as {
+          _errors?: string[];
+        }
+      )._errors?.[0] ?? "",
+    ])
+  );
+}
+
+const createCustomFieldSchema = (
+  definitions: CustomFieldDefinition[]
+): CustomFieldSchemaType => {
   const schemaObject: ZodRawShape = definitions.reduce((acc, { key, type }) => {
     let fieldSchema;
     if (type === "text") {
@@ -49,6 +83,19 @@ const createCustomFieldSchema = (definitions: CustomFieldDefinition[]) => {
 
   return z.object(schemaObject);
 };
+
+function createTaskSchema(customFieldSchema: CustomFieldSchemaType) {
+  return z.object({
+    title: z.string().min(3, "Title must be at least 3 characters"),
+    priority: z.nativeEnum(Priority, {
+      errorMap: () => ({ message: "Invalid priority" }),
+    }),
+    status: z.nativeEnum(Status, {
+      errorMap: () => ({ message: "Invalid status" }),
+    }),
+    customFields: customFieldSchema,
+  });
+}
 
 export default function CreateTaskDrawer() {
   const prioritySelectOptions = createListCollection({
@@ -69,9 +116,7 @@ export default function CreateTaskDrawer() {
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState(Priority.None);
   const [status, setStatus] = useState(Status.NotStarted);
-  const [customFields, setCustomFields] = useState<
-    Record<string, string | number | boolean>
-  >({});
+  const [customFields, setCustomFields] = useState<CustomFields>({});
   const [errors, setErrors] = useState<Errors>({
     title: "",
     priority: "",
@@ -81,16 +126,7 @@ export default function CreateTaskDrawer() {
 
   const customFieldSchema = createCustomFieldSchema(customFieldDefinitions);
 
-  const taskSchema = z.object({
-    title: z.string().min(3, "Title must be at least 3 characters"),
-    priority: z.nativeEnum(Priority, {
-      errorMap: () => ({ message: "Invalid priority" }),
-    }),
-    status: z.nativeEnum(Status, {
-      errorMap: () => ({ message: "Invalid status" }),
-    }),
-    customFields: customFieldSchema,
-  });
+  const taskSchema = createTaskSchema(customFieldSchema);
 
   const handleSubmit = () => {
     const result = taskSchema.safeParse({
@@ -106,16 +142,7 @@ export default function CreateTaskDrawer() {
         title: fieldErrors.title?._errors[0] ?? "",
         priority: fieldErrors.priority?._errors[0] ?? "",
         status: fieldErrors.status?._errors[0] ?? "",
-        customFields: Object.fromEntries(
-          Object.entries(fieldErrors.customFields ?? {}).map(([key, value]) => [
-            key,
-            (
-              value as {
-                _errors?: string[];
-              }
-            )._errors?.[0] ?? "",
-          ])
-        ),
+        customFields: tranformCustomFieldErrors(fieldErrors),
       });
       return;
     }
