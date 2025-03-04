@@ -23,6 +23,7 @@ export default function TaskTable() {
       accessor: "title",
       title: "Task",
       width: "50%",
+      sortable: true
     },
     {
       accessor: "priority",
@@ -31,6 +32,7 @@ export default function TaskTable() {
         return <PriorityBadge priority={item.priority} />;
       },
       width: "20%",
+      sortable: true
     },
     {
       accessor: "status",
@@ -39,6 +41,7 @@ export default function TaskTable() {
         return <StatusBadge status={item.status} />;
       },
       width: "20%",
+      sortable: true
     },
     {
       title: "Actions",

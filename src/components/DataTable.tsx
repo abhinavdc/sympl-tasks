@@ -1,5 +1,5 @@
-import { Box, Flex, HStack, Table } from "@chakra-ui/react";
-import { ReactNode, useState } from "react";
+import { Box, Flex, HStack, Table, Text } from "@chakra-ui/react";
+import { ReactNode, useMemo, useState } from "react";
 import {
   PaginationItems,
   PaginationNextTrigger,
@@ -8,6 +8,7 @@ import {
   PaginationRoot,
 } from "./ui/pagination";
 import PageSizeSelector from "./PageSizeSelector";
+import { LuArrowDownNarrowWide, LuArrowUpNarrowWide } from "react-icons/lu";
 
 type StringKeyOf<T> = Extract<keyof T, string>;
 
@@ -16,6 +17,8 @@ export interface ColumnDef<T> {
   title: string | ReactNode;
   render?: (item: T) => React.ReactNode;
   width?: string;
+  sortable?: boolean;
+  filterable?: boolean;
 }
 
 function paginate<T>(array: T[], pageNumber: number, pageSize: number): T[] {
@@ -32,6 +35,49 @@ export default function DataTable<T>({
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  const [sortColumn, setSortColumn] = useState<StringKeyOf<T> | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  // Handle column sorting
+  const handleSort = (column: StringKeyOf<T>) => {
+    if (sortColumn === column) {
+      // Toggle sort direction if same column
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      // Set new sort column and default to ascending
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  // Memoized and processed data
+  const processedData = useMemo(() => {
+    const result = [...items];
+
+    // Apply sorting
+    if (sortColumn) {
+      result.sort((a, b) => {
+        const valueA = a[sortColumn as keyof T];
+        const valueB = b[sortColumn as keyof T];
+
+        if (valueA == null) return sortDirection === "asc" ? 1 : -1;
+        if (valueB == null) return sortDirection === "asc" ? -1 : 1;
+
+        if (typeof valueA === "string" && typeof valueB === "string") {
+          return sortDirection === "asc"
+            ? valueA.localeCompare(valueB)
+            : valueB.localeCompare(valueA);
+        }
+
+        return sortDirection === "asc"
+          ? Number(valueA) - Number(valueB)
+          : Number(valueB) - Number(valueA);
+      });
+    }
+
+    return result;
+  }, [items, sortColumn, sortDirection]);
 
   function changePageSize(val: number) {
     setPageSize(val);
@@ -62,8 +108,24 @@ export default function DataTable<T>({
             <Table.Row>
               {columns.map((column) => {
                 return (
-                  <Table.ColumnHeader key={column.accessor}>
-                    {column.title}
+                  <Table.ColumnHeader
+                    key={column.accessor}
+                    onClick={() => {
+                      if (column.sortable && column.accessor)
+                        handleSort(column.accessor);
+                    }}
+                    cursor={column.sortable ? "pointer" : "default"}
+                  >
+                    <HStack>
+                      <Text>{column.title}</Text>
+                      {column.sortable &&
+                        sortColumn === column.accessor &&
+                        (sortDirection === "asc" ? (
+                          <LuArrowUpNarrowWide color="gray.500" />
+                        ) : (
+                          <LuArrowDownNarrowWide color="gray.500" />
+                        ))}
+                    </HStack>
                   </Table.ColumnHeader>
                 );
               })}
@@ -71,11 +133,13 @@ export default function DataTable<T>({
           </Table.Header>
 
           <Table.Body>
-            {paginate(items, currentPage, pageSize).map((item) => (
+            {paginate(processedData, currentPage, pageSize).map((item) => (
               <Table.Row key={item.id}>
                 {columns.map((column) => {
                   return (
-                    <Table.Cell key={`${String(item.id)}-${column.accessor ?? ""}`}>
+                    <Table.Cell
+                      key={`${String(item.id)}-${column.accessor ?? ""}`}
+                    >
                       {column.render
                         ? column.render(item)
                         : String(column.accessor ? item[column.accessor] : "")}
