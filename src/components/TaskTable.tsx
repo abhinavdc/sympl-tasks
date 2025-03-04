@@ -70,7 +70,7 @@ export default function TaskTable() {
         <HStack>
           <IconButton
             variant="ghost"
-            aria-label="Edit Task"
+            aria-label={`Edit Task: ${item.title}`}
             size="xs"
             onClick={() => {
               handleEdit(item);
@@ -80,7 +80,7 @@ export default function TaskTable() {
           </IconButton>
           <IconButton
             variant="ghost"
-            aria-label="Delete Task"
+            aria-label={`Delete Task: ${item.title}`}
             size="xs"
             colorScheme="red"
             onClick={() => {
@@ -152,13 +152,13 @@ export default function TaskTable() {
           selection={selection}
           setSelection={setSelection}
         >
-          <Button variant="outline" size="sm" onClick={handleCreate}>
+          <Button variant="outline" size="sm" onClick={handleCreate}  aria-label="create a new task">
             Create Task
           </Button>
         </DataTable>
       ) : (
         <EmptyState>
-          <Button variant="subtle" size="sm" onClick={handleCreate}>
+          <Button variant="subtle" size="sm" onClick={handleCreate} aria-label="create a new task">
             <LuPlus />
             Get started by creating a task
           </Button>

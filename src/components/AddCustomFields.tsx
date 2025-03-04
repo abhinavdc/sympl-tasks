@@ -229,7 +229,7 @@ export default function AddCustomFields({
                   onClick={() => {
                     handleRemoveField(index);
                   }}
-                  aria-label="Remove field"
+                  aria-label={`Remove field ${String(index)}`}
                   mt={6}
                 >
                   <LuTrash />
