@@ -151,6 +151,7 @@ export default function CreateTaskDrawer() {
     setTitle("");
     setPriority(Priority.None);
     setStatus(Status.NotStarted);
+    setCustomFields({})
     setErrors({ title: "", priority: "", status: "", customFields: {} });
   };
 
