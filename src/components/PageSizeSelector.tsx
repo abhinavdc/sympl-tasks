@@ -23,13 +23,13 @@ export default function PageSizeSelector({
   value: number;
   onChange: (val: number) => void;
 }) {
-console.log("value", value)
   return (
     <SelectRoot
       collection={pageSizes}
       w="100px"
       position="absolute"
-      left="30px"
+      left="10px"
+      size="sm"
       value={[String(value)]}
       onValueChange={(data) => {
         onChange(+data.value[0]);
