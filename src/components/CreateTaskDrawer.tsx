@@ -221,7 +221,9 @@ export default function CreateTaskDrawer({
         <DrawerBackdrop />
         <DrawerContent ref={contentRef}>
           <DrawerHeader>
-            <DrawerTitle>Create New Task</DrawerTitle>
+            <DrawerTitle>
+              {editMode ? "Edit Task" : "Create New Task"}
+            </DrawerTitle>
           </DrawerHeader>
           <DrawerBody>
             <VStack gap="4">
