@@ -4,6 +4,7 @@ import { persist } from "zustand/middleware";
 
 interface TaskStore {
   tasks: Task[];
+  loadBulkTask: (task: Task[]) => void;
   addTask: (task: Omit<Task, "id">) => void;
   updateTask: (id: number, updatedTask: Partial<Task>) => void;
   deleteTask: (id: number) => void;
@@ -16,6 +17,10 @@ export const useTaskStore = create<TaskStore>()(
   persist(
     (set, get) => ({
       tasks: [],
+
+      loadBulkTask: (tasks) => {
+        set({ tasks: [...tasks] });
+      },
 
       addTask: (task) => {
         const newTask: Task = { id: Date.now(), ...task };

@@ -34,16 +34,65 @@ function paginate<T>(array: T[], pageNumber: number, pageSize: number): T[] {
   return array.slice(startIndex, startIndex + pageSize);
 }
 
+function applyFilters<T>(
+  result: T[],
+  filters: TaskFilter,
+  columns: ColumnDef<T>[]
+): T[] {
+  if (Object.keys(filters).length === 0) return result;
+
+  return result.filter((item) =>
+    Object.entries(filters).every(([key, filterValue]) => {
+      // Find the column definition for this key
+      const columnDef = columns.find((col) => col.accessor === key);
+
+      // Handle standard and custom fields
+      if (columnDef) {
+        if (
+          !columnDef.filterable ||
+          filterValue === undefined ||
+          filterValue === null
+        )
+          return true;
+
+        // Get the actual value
+        const itemValue: unknown = get(item, key as keyof T);
+
+        // Default filtering logic based on filter type
+        switch (columnDef.filterType) {
+          case "text":
+            return String(itemValue)
+              .toLowerCase()
+              .includes(String(filterValue).toLowerCase());
+
+          case "number":
+            return itemValue === Number(filterValue);
+
+          case "checkbox":
+            return itemValue === filterValue;
+
+          case "select":
+            return itemValue === filterValue;
+
+          default:
+            return true;
+        }
+      }
+
+      // If no column definition found, keep the item
+      return true;
+    })
+  );
+}
+
 export default function DataTable<T>({
   items,
   columns,
-  children,
   selection,
   setSelection,
 }: {
   items: (T & { id?: number })[];
   columns: ColumnDef<T>[];
-  children: React.ReactNode;
   selection: number[];
   setSelection: (data: number[]) => void;
 }) {
@@ -74,43 +123,16 @@ export default function DataTable<T>({
   const processedData = useMemo(() => {
     let result = [...items];
 
-    // TODO make filtering and soring agnostic to the type of data
-    // Apply filters
     if (Object.keys(filters).length) {
-      const { title, priority, status, customFields } = filters;
-
-      if (title) {
-        result = result.filter((item) =>
-          String(item["title"]).toLowerCase().includes(title.toLowerCase())
-        );
-      }
-
-      if (priority) {
-        result = result.filter((item) => item["priority"] === priority);
-      }
-
-      if (status) {
-        result = result.filter((item) => item["status"] === status);
-      }
-
-      // Apply custom field filters
-      if (customFields) {
-        Object.entries(customFields).forEach(([key, value]) => {
-          if (value) {
-            result = result.filter((item) => {
-              const customFieldValue = item[key];
-              return customFieldValue === value;
-            });
-          }
-        });
-      }
+      result = applyFilters(result, filters, columns);
+      setCurrentPage(1);
     }
 
     // Apply sorting
     if (sortColumn) {
       result.sort((a, b) => {
-        const valueA = a[sortColumn as keyof T];
-        const valueB = b[sortColumn as keyof T];
+        const valueA = get(a, sortColumn as keyof T);
+        const valueB = get(b, sortColumn as keyof T);
 
         if (valueA == null) return sortDirection === "asc" ? 1 : -1;
         if (valueB == null) return sortDirection === "asc" ? -1 : 1;
@@ -125,10 +147,10 @@ export default function DataTable<T>({
           ? Number(valueA) - Number(valueB)
           : Number(valueB) - Number(valueA);
       });
+      setCurrentPage(1);
     }
-
     return result;
-  }, [filters, items, sortColumn, sortDirection]);
+  }, [columns, filters, items, sortColumn, sortDirection]);
 
   function changePageSize(val: number) {
     setPageSize(val);
@@ -147,7 +169,7 @@ export default function DataTable<T>({
         >
           <LuFilter />
         </Button>
-        {children}
+        <Box w="108px"></Box>
       </HStack>
 
       <Box
@@ -184,9 +206,7 @@ export default function DataTable<T>({
                       changes.checked
                         ? items
                             .map((item) => item.id)
-                            .filter(
-                              (id): id is number => id !== undefined
-                            )
+                            .filter((id): id is number => id !== undefined)
                         : []
                     );
                   }}
@@ -267,7 +287,7 @@ export default function DataTable<T>({
         <PageSizeSelector value={pageSize} onChange={changePageSize} />
         <PaginationRoot
           page={currentPage}
-          count={items.length}
+          count={processedData.length}
           pageSize={pageSize}
           defaultPage={1}
           onPageChange={(details) => {

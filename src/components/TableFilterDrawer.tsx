@@ -29,12 +29,13 @@ import {
 import { useRef, useState } from "react";
 import { PriorityOptions, StatusOptions } from "@/data/constants";
 import { useTaskStore } from "@/data/store";
+import { prefixObjectKeys } from "@/helpers/objectHelper";
 
 export interface TaskFilter {
   title?: string;
   priority?: Priority | null;
   status?: Status | null;
-  customFields?: CustomFields;
+  [key: string]: string | number | boolean | Priority | Status | null | undefined;
 }
 
 export default function TableFilterDrawer({
@@ -83,7 +84,7 @@ export default function TableFilterDrawer({
       title,
       priority,
       status,
-      customFields,
+      ...prefixObjectKeys(customFields, "customFields.")
     });
     setOpenDrawer(false);
   };
@@ -122,7 +123,7 @@ export default function TableFilterDrawer({
                 variant="outline"
               >
                 <SelectLabel>Status</SelectLabel>
-                <SelectTrigger>
+                <SelectTrigger clearable>
                   <SelectValueText placeholder="Select option" />
                 </SelectTrigger>
                 <SelectContent
@@ -147,7 +148,7 @@ export default function TableFilterDrawer({
                 variant="outline"
               >
                 <SelectLabel>Priority</SelectLabel>
-                <SelectTrigger>
+                <SelectTrigger clearable>
                   <SelectValueText placeholder="Select option" />
                 </SelectTrigger>
                 <SelectContent

@@ -31,7 +31,7 @@ export interface Errors {
 
 export type FieldTypes = "text" | "number" | "checkbox" | "select";
 
-export type CustomFieldType = "text" | "number" | "checkbox";
+export type CustomFieldType = FieldTypes | "checkbox";
 
 export interface CustomFieldDefinition {
   key: string;

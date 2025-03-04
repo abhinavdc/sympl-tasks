@@ -13,6 +13,7 @@ import {
   HStack,
   IconButton,
   Portal,
+  VStack,
 } from "@chakra-ui/react";
 import { useTaskStore } from "@/data/store";
 import { LuPencil, LuPlus, LuTrash } from "react-icons/lu";
@@ -21,9 +22,11 @@ import { useState } from "react";
 import { toaster } from "./ui/toaster";
 import { PriorityOptions, StatusOptions } from "@/data/constants";
 import EmptyState from "./EmptyState";
+import { mockTasks } from "@/data/mock";
 
 export default function TaskTable() {
-  const { tasks, deleteTask, customFieldDefinitions } = useTaskStore();
+  const { tasks, deleteTask, customFieldDefinitions, loadBulkTask } =
+    useTaskStore();
   const [openTaskDrawer, setOpenTaskDrawer] = useState(false);
   const [openConfirmation, setOpenConfirmation] = useState(false);
   const [markedDeleteItem, setMarkedDeleteItem] = useState<number[] | null>(
@@ -102,6 +105,7 @@ export default function TaskTable() {
         title: x.label,
         sortable: true,
         filterable: true,
+        filterType: x.type
       };
     });
     return columns;
@@ -143,25 +147,48 @@ export default function TaskTable() {
     handleDelete(selection);
   }
 
+  function loadMock() {
+    loadBulkTask(mockTasks);
+  }
+
   return (
     <>
       {tasks.length ? (
-        <DataTable
-          columns={columns}
-          items={tasks}
-          selection={selection}
-          setSelection={setSelection}
-        >
-          <Button variant="outline" size="sm" onClick={handleCreate}  aria-label="create a new task">
+        <>
+          <Button
+            pos="absolute"
+            right="10px"
+            top="8px"
+            variant="outline"
+            size="sm"
+            onClick={handleCreate}
+            aria-label="create a new task"
+          >
             Create Task
           </Button>
-        </DataTable>
+          <DataTable
+            columns={columns}
+            items={tasks}
+            selection={selection}
+            setSelection={setSelection}
+          />
+        </>
       ) : (
         <EmptyState>
-          <Button variant="subtle" size="sm" onClick={handleCreate} aria-label="create a new task">
-            <LuPlus />
-            Get started by creating a task
-          </Button>
+          <VStack>
+            <Button
+              variant="subtle"
+              size="sm"
+              onClick={handleCreate}
+              aria-label="create a new task"
+            >
+              <LuPlus />
+              Get started by creating a task
+            </Button>
+            <Button variant="plain" size="xs" onClick={loadMock}>
+              Use Demo Data
+            </Button>
+          </VStack>
         </EmptyState>
       )}
 
