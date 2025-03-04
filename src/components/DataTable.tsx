@@ -1,5 +1,12 @@
-import { Box, Flex, HStack, Table, Text } from "@chakra-ui/react";
-import { ReactNode, useMemo, useState } from "react";
+import {
+  Box,
+  Button,
+  Flex,
+  HStack,
+  Table,
+  Text,
+} from "@chakra-ui/react";
+import { useMemo, useState } from "react";
 import {
   PaginationItems,
   PaginationNextTrigger,
@@ -8,17 +15,25 @@ import {
   PaginationRoot,
 } from "./ui/pagination";
 import PageSizeSelector from "./PageSizeSelector";
-import { LuArrowDownNarrowWide, LuArrowUpNarrowWide } from "react-icons/lu";
+import {
+  LuArrowDownNarrowWide,
+  LuArrowUpNarrowWide,
+  LuFilter,
+} from "react-icons/lu";
+import { FieldTypes } from "@/data/types";
+import TableFilterDrawer, { TaskFilter } from "./TableFilterDrawer";
 
 type StringKeyOf<T> = Extract<keyof T, string>;
 
 export interface ColumnDef<T> {
   accessor?: StringKeyOf<T>;
-  title: string | ReactNode;
+  title: string;
   render?: (item: T) => React.ReactNode;
   width?: string;
   sortable?: boolean;
   filterable?: boolean;
+  filterType?: FieldTypes;
+  filterOptions?: { label: string; value: string }[];
 }
 
 function paginate<T>(array: T[], pageNumber: number, pageSize: number): T[] {
@@ -29,12 +44,16 @@ function paginate<T>(array: T[], pageNumber: number, pageSize: number): T[] {
 export default function DataTable<T>({
   items,
   columns,
+  children
 }: {
   items: (T & { id?: string | number })[];
   columns: ColumnDef<T>[];
+  children: React.ReactNode;
 }) {
+  const [openFilter, setOpenFilter] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [filters, setFilters] = useState<TaskFilter>({});
 
   const [sortColumn, setSortColumn] = useState<StringKeyOf<T> | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -53,7 +72,38 @@ export default function DataTable<T>({
 
   // Memoized and processed data
   const processedData = useMemo(() => {
-    const result = [...items];
+    let result = [...items];
+
+    // Apply filters
+    if (Object.keys(filters).length) {
+      const { title, priority, status, customFields } = filters;
+
+      if (title) {
+        result = result.filter((item) =>
+          String(item["title"]).toLowerCase().includes(title.toLowerCase())
+        );
+      }
+
+      if (priority) {
+        result = result.filter((item) => item["priority"] === priority);
+      }
+
+      if (status) {
+        result = result.filter((item) => item["status"] === status);
+      }
+
+      // Apply custom field filters
+      if (customFields) {
+        Object.entries(customFields).forEach(([key, value]) => {
+          if (value) {
+            result = result.filter((item) => {
+              const customFieldValue = item[key];
+              return customFieldValue === value;
+            });
+          }
+        });
+      }
+    }
 
     // Apply sorting
     if (sortColumn) {
@@ -77,7 +127,7 @@ export default function DataTable<T>({
     }
 
     return result;
-  }, [items, sortColumn, sortDirection]);
+  }, [filters, items, sortColumn, sortDirection]);
 
   function changePageSize(val: number) {
     setPageSize(val);
@@ -86,6 +136,19 @@ export default function DataTable<T>({
 
   return (
     <>
+      <HStack justifyContent="flex-end" py="2">
+        <Button
+          onClick={() => {
+            setOpenFilter(true);
+          }}
+          size="sm"
+          variant="outline" 
+        >
+          <LuFilter />
+        </Button>
+        {children}
+      </HStack>
+      
       <Box
         borderWidth="1px"
         borderColor="gray.200"
@@ -173,6 +236,12 @@ export default function DataTable<T>({
           </HStack>
         </PaginationRoot>
       </Flex>
+
+      <TableFilterDrawer
+        openDrawer={openFilter}
+        setOpenDrawer={setOpenFilter}
+        onApplyFilters={setFilters}
+      />
     </>
   );
 }

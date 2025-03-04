@@ -29,7 +29,9 @@ export interface Errors {
   customFields: Record<string, string>; // Maps custom field keys to error messages
 }
 
-type CustomFieldType = "text" | "number" | "checkbox";
+export type FieldTypes = "text" | "number" | "checkbox" | "select";
+
+export type CustomFieldType = "text" | "number" | "checkbox";
 
 export interface CustomFieldDefinition {
   key: string;

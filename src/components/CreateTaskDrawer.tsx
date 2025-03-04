@@ -36,12 +36,12 @@ import {
   SelectTrigger,
   SelectValueText,
 } from "./ui/select";
-import { toHumanReadable } from "@/helpers/stringHelper";
 import {
   z,
   ZodRawShape,
 } from "zod";
 import { Checkbox } from "./ui/checkbox";
+import { PriorityOptions, StatusOptions } from "@/data/constants";
 
 function tranformCustomFieldErrors(
   fieldErrors: z.ZodFormattedError<{
@@ -105,15 +105,11 @@ export default function CreateTaskDrawer({
   task?: Task | null;
 }) {
   const prioritySelectOptions = createListCollection({
-    items: Object.values(Priority).map((option) => {
-      return { label: toHumanReadable(option), value: option };
-    }),
+    items: PriorityOptions
   });
 
   const statusSelectOptions = createListCollection({
-    items: Object.values(Status).map((option) => {
-      return { label: toHumanReadable(option), value: option };
-    }),
+    items: StatusOptions
   });
 
   const { addTask, updateTask, customFieldDefinitions } = useTaskStore();

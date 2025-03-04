@@ -2,14 +2,14 @@ import DataTable, { ColumnDef } from "./DataTable";
 import { Task } from "@/data/types";
 import StatusBadge from "./StatusBadge";
 import PriorityBadge from "./PriorityBadge";
-import Toolbar from "./Toolbar";
 import CreateTaskDrawer from "./CreateTaskDrawer";
-import { Button, Flex, HStack, IconButton } from "@chakra-ui/react";
+import { Button, HStack, IconButton } from "@chakra-ui/react";
 import { useTaskStore } from "@/data/store";
 import { LuPencil, LuTrash } from "react-icons/lu";
 import DeleteConfirmation from "./DeleteConfirmation";
 import { useState } from "react";
 import { toaster } from "./ui/toaster";
+import { PriorityOptions, StatusOptions } from "@/data/constants";
 
 export default function TaskTable() {
   const { tasks, deleteTask } = useTaskStore();
@@ -23,7 +23,9 @@ export default function TaskTable() {
       accessor: "title",
       title: "Task",
       width: "50%",
-      sortable: true
+      sortable: true,
+      filterable: true,
+      filterType: "text",
     },
     {
       accessor: "priority",
@@ -32,7 +34,10 @@ export default function TaskTable() {
         return <PriorityBadge priority={item.priority} />;
       },
       width: "20%",
-      sortable: true
+      sortable: true,
+      filterable: true,
+      filterType: "select",
+      filterOptions: PriorityOptions,
     },
     {
       accessor: "status",
@@ -41,7 +46,10 @@ export default function TaskTable() {
         return <StatusBadge status={item.status} />;
       },
       width: "20%",
-      sortable: true
+      sortable: true,
+      filterable: true,
+      filterType: "select",
+      filterOptions: StatusOptions,
     },
     {
       title: "Actions",
@@ -105,14 +113,11 @@ export default function TaskTable() {
 
   return (
     <>
-      <Flex justifyContent="space-between" w="100%" py="2">
-        <Toolbar />
+      <DataTable columns={columns} items={tasks}>
         <Button variant="outline" size="sm" onClick={handleCreate}>
           Create Task
         </Button>
-      </Flex>
-
-      <DataTable columns={columns} items={tasks} />
+      </DataTable>
 
       <CreateTaskDrawer
         openDrawer={openDrawer}
