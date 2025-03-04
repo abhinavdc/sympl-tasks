@@ -9,7 +9,7 @@ export default function EmptyStateCta({
     <>
       <EmptyState.Root size="lg">
         <EmptyState.Content>
-          <Image src="src/assets/folder.png" height="200px"/>
+          <Image src="https://cdn-icons-png.flaticon.com/512/1466/1466784.png" alt="Empty Sad Folder" height="200px"/>
           <VStack textAlign="center">
             <EmptyState.Title>Your todo list is empty</EmptyState.Title>
             <EmptyState.Description>
